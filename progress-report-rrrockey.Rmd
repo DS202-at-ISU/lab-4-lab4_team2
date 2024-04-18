@@ -9,22 +9,51 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r}
+library(Lahman)
+library(dplyr)
+library(rvest)
+library(readr)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+url <- "https://www.baseball-reference.com/awards/hof_2023.shtml"
+html <- read_html(url)
+tables <- html_table(html)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+write.csv(tables[[1]], "temp.csv", row.names = FALSE)
+backin <- readr::read_csv("temp.csv", skip = 1, show_col_types = FALSE)
 
-```{r cars}
-summary(cars)
+
+People$fullName <- paste(People$nameFirst, People$nameLast, sep = " ")
+
+# Extract full name from names with various formats
+backin$fullName <- backin$Name
+
+# Remove "X-" prefix and " HOF" suffix
+backin$fullName <- gsub("^X-|\\s+HOF$", "", backin$fullName)
+
+# Remove extra spaces from "J.J." and "R.A."
+People$fullName <- gsub("J. J.", "J.J.", People$fullName)
+People$fullName <- gsub("R. A.", "R.A.", People$fullName)
+
+# Replace accented characters
+backin$fullName <- gsub("í", "i", backin$fullName)
+backin$fullName <- gsub("á", "a", backin$fullName)
+
+backin <- merge(backin, People, by.x = "fullName", by.y = "fullName", all.x = TRUE)
+
+backin$yearID = parse_number(gsub("https://www.baseball-reference.com/awards/hof_", "", url))
+backin$votedBy = "BBWAA"
+backin$ballots = 389
+backin$needed = ceiling(backin$ballots * 0.75)
+backin$votes = backin$Votes
+backin$inducted = ifelse(backin$votes > backin$needed, "Y", "N")
+backin$category = "Player"
+backin$needed_notes = NA
+
+
+colnames(HallOfFame)
+keep = c("playerID", "yearID", "votedBy", "ballots", "needed", "votes", "inducted", "category", "needed_note")
+backin = backin[,(names(backin) %in% keep)]
+backin$playerID[28] = "heltoto01"
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
