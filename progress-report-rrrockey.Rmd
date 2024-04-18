@@ -48,12 +48,20 @@ backin$needed = ceiling(backin$ballots * 0.75)
 backin$votes = backin$Votes
 backin$inducted = ifelse(backin$votes > backin$needed, "Y", "N")
 backin$category = "Player"
-backin$needed_notes = NA
+backin$needed_note = NA
 
-
-colnames(HallOfFame)
 keep = c("playerID", "yearID", "votedBy", "ballots", "needed", "votes", "inducted", "category", "needed_note")
 backin = backin[,(names(backin) %in% keep)]
 backin$playerID[28] = "heltoto01"
+
+backin <- backin[order(backin$votes, decreasing = TRUE),]
+```
+
+
+
+```{r}
+new_HallOfFame <- add_row(HallOfFame, backin)
+
+write.csv(new_HallOfFame, "HallOfFame.csv", row.names = FALSE)
 ```
 
