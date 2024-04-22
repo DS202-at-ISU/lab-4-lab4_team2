@@ -9,3 +9,43 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(rvest)
+library(Lahman)
+
+# Load the necessary library
+library(rvest)
+
+# Specify the URL
+url <- "https://www.baseball-reference.com/awards/hof_2023.shtml"
+
+
+# Read the HTML content from the URL
+page <- read_html(url)
+
+tables <- html_table(page)
+
+str(tables[[1]])
+str(HallOfFame)
+
+# Renaming columns to match HallOfFame
+colnames(tables[[1]]) <- colnames(HallOfFame)
+
+
+# Selecting relevant columns from the scraped data
+selected_cols <- c("playerID", "yearID", "votedBy", "ballots", "needed", "votes", "inducted", "category", "needed_note")
+
+# Subsetting the scraped data frame with the selected columns
+scraped_subset <- tables[[1]][, selected_cols]
+
+# Convert relevant columns in the scraped data frame to appropriate data types
+scraped_subset$yearID <- as.integer(2023)
+scraped_subset$ballots <- as.integer(scraped_subset$ballots)
+scraped_subset$needed <- as.integer(scraped_subset$needed)
+scraped_subset$votes <- as.integer(scraped_subset$votes)
+
+# Append the subset of scraped data to HallOfFame
+HallOfFame <- rbind(HallOfFame, scraped_subset)
+
+View(HallOfFame)
+```
