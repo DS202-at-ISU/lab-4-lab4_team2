@@ -47,5 +47,5 @@ scraped_subset$votes <- as.integer(scraped_subset$votes)
 # Append the subset of scraped data to HallOfFame
 HallOfFame <- rbind(HallOfFame, scraped_subset)
 
-View(HallOfFame)
+HallOfFame
 ```
