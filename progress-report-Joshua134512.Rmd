@@ -10,20 +10,38 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+library(Lahman)
+library(rvest)
+library(dplyr)
+url <- "https://www.baseball-reference.com/awards/hof_2023.shtml"
+html <- read_html(url)
+tables <- html %>% html_table(fill=TRUE)
+write.csv(tables[[1]], "temp.csv", row.names=FALSE)
+backin <- readr::read_csv("temp.csv", skip = 1, show_col_types =FALSE)
+head(backin, 3)
+df <- backin
+df$yearID = 2023
+df$votedBy = "BBWAA"
+df$category = NA
+df$needed_note = NA
+df$ballots = 389
+df$needed=292
+df$inducted = ifelse(df$Votes>=292, "Y", "N")
+People <- People %>% mutate(
+  `Name`=paste(`nameFirst`, `nameLast`)
+)
+left_join(df, People, by = "Name")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+library(Lahman)
+library(ggplot2)
+HallOfFame2 <- bind_rows(HallOfFame, df)
+HallOfFame2
+HallOfFame2 %>% 
+  ggplot(aes(x = yearID, fill = inducted)) +
+  geom_bar() +
+  xlim(c(1936, 2022))
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
